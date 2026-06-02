@@ -2,6 +2,7 @@
   import { invoke } from "@tauri-apps/api/core";
   import SettingCard from "$lib/components/SettingCard.svelte";
   import ColorPicker from "$lib/components/ColorPicker.svelte";
+  import DurationInput from "$lib/components/DurationInput.svelte";
   import TitleBar from "$lib/components/TitleBar.svelte";
   import { DEFAULT_CONFIG, type AppConfig, type AppLocale } from "$lib/types";
   import { applyThemeColor } from "$lib/utils";
@@ -19,14 +20,6 @@
 
   $effect(() => {
     savedConfig = { ...config };
-  });
-
-  let breakInput = $state(String(DEFAULT_CONFIG.breakMinutes));
-  let workInput = $state(String(DEFAULT_CONFIG.workMinutes));
-
-  $effect(() => {
-    breakInput = String(savedConfig.breakMinutes);
-    workInput = String(savedConfig.workMinutes);
   });
 
   async function update(partial: Partial<AppConfig>) {
@@ -63,39 +56,6 @@
     await update({ locale: next });
   }
 
-  function onWorkMinutesInput(value: string) {
-    workInput = value;
-    const n = parseInt(value, 10);
-    if (n > 0 && n <= 180) void update({ workMinutes: n });
-  }
-
-  function onWorkMinutesBlur() {
-    const n = parseInt(workInput, 10);
-    if (Number.isNaN(n) || n <= 0) {
-      workInput = String(savedConfig.workMinutes);
-      return;
-    }
-    const clamped = Math.min(180, Math.max(1, n));
-    workInput = String(clamped);
-    if (clamped !== savedConfig.workMinutes) void update({ workMinutes: clamped });
-  }
-
-  function onBreakMinutesInput(value: string) {
-    breakInput = value;
-    const n = parseInt(value, 10);
-    if (n > 0 && n <= 180) void update({ breakMinutes: n });
-  }
-
-  function onBreakMinutesBlur() {
-    const n = parseInt(breakInput, 10);
-    if (Number.isNaN(n) || n <= 0) {
-      breakInput = String(savedConfig.breakMinutes);
-      return;
-    }
-    const clamped = Math.min(180, Math.max(1, n));
-    breakInput = String(clamped);
-    if (clamped !== savedConfig.breakMinutes) void update({ breakMinutes: clamped });
-  }
 </script>
 
 <div class="settings">
@@ -105,13 +65,9 @@
     <section>
       <h3>{t("workDuration")}</h3>
       <div class="duration-input">
-        <input
-          type="number"
-          min="1"
-          max="180"
-          value={workInput}
-          oninput={(e) => onWorkMinutesInput((e.currentTarget as HTMLInputElement).value)}
-          onblur={onWorkMinutesBlur}
+        <DurationInput
+          value={savedConfig.workMinutes}
+          onchange={(n) => update({ workMinutes: n })}
         />
         <span class="unit">{t("minutes")}</span>
       </div>
@@ -120,13 +76,9 @@
     <section>
       <h3>{t("breakDuration")}</h3>
       <div class="duration-input">
-        <input
-          type="number"
-          min="1"
-          max="180"
-          value={breakInput}
-          oninput={(e) => onBreakMinutesInput((e.currentTarget as HTMLInputElement).value)}
-          onblur={onBreakMinutesBlur}
+        <DurationInput
+          value={savedConfig.breakMinutes}
+          onchange={(n) => update({ breakMinutes: n })}
         />
         <span class="unit">{t("minutes")}</span>
       </div>
@@ -219,21 +171,6 @@
     display: flex;
     align-items: center;
     gap: 10px;
-  }
-
-  .duration-input input {
-    flex: 1;
-    border: none;
-    background: #eef2f4;
-    border-radius: 10px;
-    padding: 10px 12px;
-    font-size: 14px;
-    color: #333;
-    outline: none;
-  }
-
-  .duration-input input:focus {
-    box-shadow: 0 0 0 2px var(--primary-soft);
   }
 
   .duration-input .unit {

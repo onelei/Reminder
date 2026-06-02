@@ -9,7 +9,6 @@ use tauri::{
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
     AppHandle, Emitter, Manager, State,
 };
-use tauri_plugin_notification::NotificationExt;
 use timer::{
     create_timer, end_work, skip_break, snapshot, spawn_timer_loop, start_break, start_work,
     SharedTimer, TimerSnapshot,
@@ -58,22 +57,10 @@ fn end_work_cmd(app: AppHandle, state: State<'_, AppState>) -> TimerSnapshot {
 }
 
 #[tauri::command]
-fn start_break_cmd(
-    app: AppHandle,
-    state: State<'_, AppState>,
-    long: bool,
-) -> Result<TimerSnapshot, String> {
-    let snap = start_break(&state.timer, &state.config, long)?;
-    windows::show_break_window(&app)?;
-    let _ = app.emit("timer-tick", &snap);
-    Ok(snap)
-}
-
-#[tauri::command]
 fn skip_break_cmd(app: AppHandle, state: State<'_, AppState>) -> Result<TimerSnapshot, String> {
-    let snap = skip_break(&state.timer, &state.config)?;
+    skip_break(&state.timer, &state.config)?;
     windows::close_break_window(&app);
-    windows::close_break_prompt(&app);
+    let snap = start_work(&state.timer, &state.config)?;
     let _ = app.emit("timer-tick", &snap);
     Ok(snap)
 }
@@ -92,11 +79,6 @@ fn hide_main_window(app: AppHandle) {
     if let Some(w) = app.get_webview_window("main") {
         let _ = w.hide();
     }
-}
-
-#[tauri::command]
-fn close_break_prompt_cmd(app: AppHandle) {
-    windows::close_break_prompt(&app);
 }
 
 #[tauri::command]
@@ -122,26 +104,12 @@ fn sync_autostart(app: &AppHandle, enabled: bool) -> Result<(), String> {
     }
 }
 
-fn handle_work_complete(app: &AppHandle, state: &AppState, use_long_break: bool) {
-    let cfg = state.config.lock().unwrap().clone();
-
-    if cfg.auto_break_mode {
-        if start_break(&state.timer, &state.config, use_long_break).is_ok() {
-            let _ = windows::show_break_window(app);
-            let snap = snapshot(&state.timer, &state.config);
-            let _ = app.emit("timer-tick", &snap);
-        }
-        return;
+fn handle_work_complete(app: &AppHandle, state: &AppState) {
+    if start_break(&state.timer, &state.config).is_ok() {
+        let _ = windows::show_break_window(app);
+        let snap = snapshot(&state.timer, &state.config);
+        let _ = app.emit("timer-tick", &snap);
     }
-
-    let _ = windows::show_break_prompt(app, use_long_break);
-
-    let (title, body) = if is_english(cfg.locale) {
-        ("Time for a break", "Nice work! How about a short break?")
-    } else {
-        ("该休息啦~", "辛苦了！休息一下吧？")
-    };
-    let _ = app.notification().builder().title(title).body(body).show();
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -151,9 +119,7 @@ pub fn run() {
             tauri_plugin_autostart::MacosLauncher::LaunchAgent,
             Some(vec![]),
         ))
-        .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_dialog::init())
-        .plugin(tauri_plugin_opener::init())
         .setup(|app| {
             let loaded = load_config(app.handle());
             let config: SharedConfig = std::sync::Arc::new(Mutex::new(loaded.clone()));
@@ -222,15 +188,9 @@ pub fn run() {
 
             let handle = app.handle().clone();
             let event_handle = handle.clone();
-            handle.listen("timer-work-complete", move |event| {
-                let payload = event.payload();
-                let use_long = serde_json::from_str::<serde_json::Value>(payload)
-                    .ok()
-                    .and_then(|v| v.get("useLongBreak").and_then(|b| b.as_bool()))
-                    .unwrap_or(false);
-
+            handle.listen("timer-work-complete", move |_event| {
                 if let Some(state) = event_handle.try_state::<AppState>() {
-                    handle_work_complete(&event_handle, &state, use_long);
+                    handle_work_complete(&event_handle, &state);
                 }
             });
 
@@ -242,11 +202,9 @@ pub fn run() {
             get_timer_state,
             start_work_cmd,
             end_work_cmd,
-            start_break_cmd,
             skip_break_cmd,
             show_main_window,
             hide_main_window,
-            close_break_prompt_cmd,
             pick_break_background,
         ])
         .run(tauri::generate_context!())

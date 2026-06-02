@@ -6,16 +6,6 @@ export function formatTime(totalSecs: number): string {
 
 export function applyThemeColor(color: string) {
   document.documentElement.style.setProperty("--primary", color);
-  document.documentElement.style.setProperty(
-    "--primary-light",
-    `${color}22`,
-  );
-  document.documentElement.style.setProperty(
-    "--primary-soft",
-    `${color}18`,
-  );
-}
-
-export function isBreakPhase(phase: string): boolean {
-  return phase === "short_break" || phase === "long_break";
+  document.documentElement.style.setProperty("--primary-light", `${color}22`);
+  document.documentElement.style.setProperty("--primary-soft", `${color}18`);
 }

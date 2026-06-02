@@ -17,15 +17,8 @@ pub const DEFAULT_THEME: &str = "#2aab9b";
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AppConfig {
-    pub work_minutes: u32,
-    pub short_break_minutes: u32,
-    pub long_break_minutes: u32,
-    pub long_break_interval: u32,
-    pub long_break_mode: bool,
-    pub strict_break_mode: bool,
-    pub auto_break_mode: bool,
-    pub daily_focus_goal: bool,
-    pub daily_goal_count: u32,
+    #[serde(default)]
+    pub break_minutes: u32,
     pub custom_break_background: bool,
     pub break_background_path: Option<String>,
     pub custom_theme_color: bool,
@@ -38,15 +31,7 @@ pub struct AppConfig {
 impl Default for AppConfig {
     fn default() -> Self {
         Self {
-            work_minutes: 25,
-            short_break_minutes: 5,
-            long_break_minutes: 15,
-            long_break_interval: 4,
-            long_break_mode: false,
-            strict_break_mode: false,
-            auto_break_mode: false,
-            daily_focus_goal: false,
-            daily_goal_count: 8,
+            break_minutes: 5,
             custom_break_background: false,
             break_background_path: None,
             custom_theme_color: true,
@@ -80,10 +65,57 @@ pub fn load_config(app: &AppHandle) -> AppConfig {
         return AppConfig::default();
     }
 
-    fs::read_to_string(&path)
-        .ok()
-        .and_then(|s| serde_json::from_str(&s).ok())
-        .unwrap_or_default()
+    let Ok(raw) = fs::read_to_string(&path) else {
+        return AppConfig::default();
+    };
+
+    let Ok(value) = serde_json::from_str::<serde_json::Value>(&raw) else {
+        return AppConfig::default();
+    };
+
+    let Some(obj) = value.as_object() else {
+        return AppConfig::default();
+    };
+
+    let mut cfg = AppConfig::default();
+
+    if let Some(v) = obj.get("breakMinutes").and_then(|v| v.as_u64()) {
+        cfg.break_minutes = v as u32;
+    }
+
+    if let Some(v) = obj.get("customBreakBackground").and_then(|v| v.as_bool()) {
+        cfg.custom_break_background = v;
+    }
+
+    if let Some(v) = obj.get("breakBackgroundPath") {
+        cfg.break_background_path = v.as_str().map(String::from);
+    }
+
+    if let Some(v) = obj.get("customThemeColor").and_then(|v| v.as_bool()) {
+        cfg.custom_theme_color = v;
+    }
+
+    if let Some(v) = obj.get("themeColor").and_then(|v| v.as_str()) {
+        cfg.theme_color = v.to_string();
+    }
+
+    if let Some(v) = obj.get("autostart").and_then(|v| v.as_bool()) {
+        cfg.autostart = v;
+    }
+
+    if let Some(v) = obj.get("locale").and_then(|v| v.as_str()) {
+        cfg.locale = if v.eq_ignore_ascii_case("en") {
+            AppLocale::En
+        } else {
+            AppLocale::Zh
+        };
+    }
+
+    if cfg.break_minutes == 0 {
+        cfg.break_minutes = AppConfig::default().break_minutes;
+    }
+
+    cfg
 }
 
 pub fn save_config_to_disk(app: &AppHandle, config: &AppConfig) -> Result<(), String> {

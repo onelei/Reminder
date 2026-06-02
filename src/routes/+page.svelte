@@ -12,7 +12,13 @@
 
   import SettingsView from "$lib/components/SettingsView.svelte";
 
-  import { DEFAULT_CONFIG, DEFAULT_TIMER, type AppConfig, type TimerSnapshot } from "$lib/types";
+  import {
+    DEFAULT_CONFIG,
+    DEFAULT_TIMER,
+    WORK_MINUTES,
+    type AppConfig,
+    type TimerSnapshot,
+  } from "$lib/types";
 
   import { applyThemeColor, formatTime } from "$lib/utils";
 
@@ -40,15 +46,13 @@
 
     timer.phase === "idle"
 
-      ? formatTime(config.workMinutes * 60)
+      ? formatTime(WORK_MINUTES * 60)
 
       : formatTime(timer.remainingSecs),
 
   );
 
 
-
-  const isRunning = $derived(timer.phase === "working");
 
   const isActive = $derived(timer.phase !== "idle");
 
@@ -100,7 +104,7 @@
 
 
 
-  async function endWork() {
+  async function stop() {
 
     timer = await invoke<TimerSnapshot>("end_work_cmd");
 
@@ -150,24 +154,6 @@
 
     <div class="main">
 
-      {#if config.dailyFocusGoal}
-
-        <div class="daily-goal">
-
-          {t("dailyProgress", {
-
-            done: timer.sessionsCompletedToday,
-
-            goal: timer.dailyGoalCount,
-
-          })}
-
-        </div>
-
-      {/if}
-
-
-
       <div class="phase">{phaseLabel(timer.phase)}</div>
 
 
@@ -178,19 +164,9 @@
 
       <div class="actions">
 
-        {#if isRunning}
+        {#if isActive}
 
-          <button type="button" class="action-btn outline" onclick={endWork}>
-
-            <span class="stop-icon"></span>
-
-            {t("endWork")}
-
-          </button>
-
-        {:else if isActive}
-
-          <button type="button" class="action-btn outline" onclick={endWork}>
+          <button type="button" class="action-btn outline" onclick={stop}>
 
             {t("stop")}
 
@@ -200,7 +176,7 @@
 
           <button type="button" class="action-btn primary" onclick={startWork}>
 
-            {t("startFocus")}
+            {t("start")}
 
           </button>
 
@@ -239,24 +215,6 @@
     align-items: center;
 
     padding: 8px 24px 32px;
-
-  }
-
-
-
-  .daily-goal {
-
-    font-size: 13px;
-
-    color: var(--primary);
-
-    background: var(--primary-soft);
-
-    padding: 6px 14px;
-
-    border-radius: 20px;
-
-    margin-bottom: 8px;
 
   }
 
@@ -335,18 +293,6 @@
   }
 
 
-
-  .stop-icon {
-
-    width: 10px;
-
-    height: 10px;
-
-    background: var(--primary);
-
-    border-radius: 1px;
-
-  }
 
 </style>
 

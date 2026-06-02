@@ -14,23 +14,38 @@ use tauri::{AppHandle, Manager};
 
 pub const DEFAULT_THEME: &str = "#2aab9b";
 
+fn default_theme_color() -> String {
+    DEFAULT_THEME.to_string()
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AppConfig {
     #[serde(default)]
+    pub work_minutes: u32,
+    #[serde(default)]
     pub break_minutes: u32,
+    #[serde(default)]
     pub custom_break_background: bool,
     pub break_background_path: Option<String>,
+    #[serde(default = "default_custom_theme_color")]
     pub custom_theme_color: bool,
+    #[serde(default = "default_theme_color")]
     pub theme_color: String,
+    #[serde(default)]
     pub autostart: bool,
     #[serde(default)]
     pub locale: AppLocale,
 }
 
+fn default_custom_theme_color() -> bool {
+    true
+}
+
 impl Default for AppConfig {
     fn default() -> Self {
         Self {
+            work_minutes: 30,
             break_minutes: 5,
             custom_break_background: false,
             break_background_path: None,
@@ -69,53 +84,34 @@ pub fn load_config(app: &AppHandle) -> AppConfig {
         return AppConfig::default();
     };
 
-    let Ok(value) = serde_json::from_str::<serde_json::Value>(&raw) else {
+    let Ok(mut cfg) = serde_json::from_str::<AppConfig>(&raw) else {
         return AppConfig::default();
     };
 
-    let Some(obj) = value.as_object() else {
-        return AppConfig::default();
+    normalize_config(&mut cfg);
+    cfg
+}
+
+pub fn load_or_create_config(app: &AppHandle) -> AppConfig {
+    let path = match config_path(app) {
+        Ok(p) => p,
+        Err(_) => return AppConfig::default(),
     };
 
-    let mut cfg = AppConfig::default();
-
-    if let Some(v) = obj.get("breakMinutes").and_then(|v| v.as_u64()) {
-        cfg.break_minutes = v as u32;
+    let cfg = load_config(app);
+    if !path.exists() {
+        let _ = save_config_to_disk(app, &cfg);
     }
+    cfg
+}
 
-    if let Some(v) = obj.get("customBreakBackground").and_then(|v| v.as_bool()) {
-        cfg.custom_break_background = v;
+fn normalize_config(cfg: &mut AppConfig) {
+    if cfg.work_minutes == 0 {
+        cfg.work_minutes = AppConfig::default().work_minutes;
     }
-
-    if let Some(v) = obj.get("breakBackgroundPath") {
-        cfg.break_background_path = v.as_str().map(String::from);
-    }
-
-    if let Some(v) = obj.get("customThemeColor").and_then(|v| v.as_bool()) {
-        cfg.custom_theme_color = v;
-    }
-
-    if let Some(v) = obj.get("themeColor").and_then(|v| v.as_str()) {
-        cfg.theme_color = v.to_string();
-    }
-
-    if let Some(v) = obj.get("autostart").and_then(|v| v.as_bool()) {
-        cfg.autostart = v;
-    }
-
-    if let Some(v) = obj.get("locale").and_then(|v| v.as_str()) {
-        cfg.locale = if v.eq_ignore_ascii_case("en") {
-            AppLocale::En
-        } else {
-            AppLocale::Zh
-        };
-    }
-
     if cfg.break_minutes == 0 {
         cfg.break_minutes = AppConfig::default().break_minutes;
     }
-
-    cfg
 }
 
 pub fn save_config_to_disk(app: &AppHandle, config: &AppConfig) -> Result<(), String> {

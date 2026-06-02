@@ -2,7 +2,7 @@ mod config;
 mod timer;
 mod windows;
 
-use config::{is_english, load_config, save_config_to_disk, AppConfig, SharedConfig};
+use config::{is_english, load_or_create_config, save_config_to_disk, AppConfig, SharedConfig};
 use std::sync::Mutex;
 use tauri::{
     menu::{Menu, MenuItem},
@@ -121,7 +121,7 @@ pub fn run() {
         ))
         .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
-            let loaded = load_config(app.handle());
+            let loaded = load_or_create_config(app.handle());
             let config: SharedConfig = std::sync::Arc::new(Mutex::new(loaded.clone()));
             let timer = create_timer();
             let state = AppState {

@@ -15,7 +15,6 @@
   import {
     DEFAULT_CONFIG,
     DEFAULT_TIMER,
-    WORK_MINUTES,
     type AppConfig,
     type TimerSnapshot,
   } from "$lib/types";
@@ -46,7 +45,7 @@
 
     timer.phase === "idle"
 
-      ? formatTime(WORK_MINUTES * 60)
+      ? formatTime(config.workMinutes * 60)
 
       : formatTime(timer.remainingSecs),
 

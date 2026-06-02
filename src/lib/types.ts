@@ -1,10 +1,8 @@
 export type TimerPhase = "idle" | "working" | "break";
 export type AppLocale = "zh" | "en";
 
-/** 固定专注时长（分钟），不可在设置中修改 */
-export const WORK_MINUTES = 25;
-
 export interface AppConfig {
+  workMinutes: number;
   breakMinutes: number;
   customBreakBackground: boolean;
   breakBackgroundPath: string | null;
@@ -34,9 +32,8 @@ export const THEME_COLORS = [
   { id: "charcoal", value: "#5a5a5a" },
 ];
 
-export const BREAK_PRESETS = [1, 2, 5, 10, 15, 20];
-
 export const DEFAULT_CONFIG: AppConfig = {
+  workMinutes: 30,
   breakMinutes: 5,
   customBreakBackground: false,
   breakBackgroundPath: null,

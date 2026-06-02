@@ -5,8 +5,6 @@ use std::thread;
 use std::time::Duration;
 use tauri::{AppHandle, Emitter};
 
-pub const WORK_MINUTES: u32 = 25;
-
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum TimerPhase {
@@ -71,7 +69,8 @@ pub fn start_work(timer: &SharedTimer, config: &SharedConfig) -> Result<TimerSna
             return Err("timer already running".into());
         }
 
-        let secs = WORK_MINUTES * 60;
+        let cfg = read_config(config);
+        let secs = cfg.work_minutes * 60;
         t.phase = TimerPhase::Working;
         t.remaining_secs = secs;
         t.total_secs = secs;

@@ -26,12 +26,16 @@ fn get_config(state: State<'_, AppState>) -> AppConfig {
 
 #[tauri::command]
 fn save_config(app: AppHandle, state: State<'_, AppState>, config: AppConfig) -> Result<(), String> {
-    {
+    let prev_autostart = {
         let mut current = state.config.lock().unwrap();
+        let prev = current.autostart;
         *current = config.clone();
-    }
+        prev
+    };
     save_config_to_disk(&app, &config)?;
-    sync_autostart(&app, config.autostart)?;
+    if prev_autostart != config.autostart {
+        sync_autostart(&app, config.autostart)?;
+    }
     let snap = snapshot(&state.timer, &state.config);
     let _ = app.emit("timer-tick", &snap);
     Ok(())

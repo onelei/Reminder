@@ -2,6 +2,14 @@
 
 本项目的所有重要变更均记录在此文件中。格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.0.0/)，版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [0.3.2] - 2026-06-02
+
+### 修复
+
+- 修复开机自启关闭后，修改其他设置（如自定义休息背景）时保存失败、开关无法开启的问题（仅在自启状态变更时同步注册表）
+
+---
+
 ## [0.3.1] - 2026-06-02
 
 ### 修复
@@ -70,7 +78,8 @@
 - NSIS 安装包（内置 WebView2 引导程序）
 - 配置持久化至 `%APPDATA%\com.reminder.app\config.json`
 
-[0.3.1]: https://github.com/onelei/Reminder/compare/0.3.0...HEAD
+[0.3.2]: https://github.com/onelei/Reminder/compare/0.3.1...HEAD
+[0.3.1]: https://github.com/onelei/Reminder/compare/0.3.0...0.3.1
 [0.3.0]: https://github.com/onelei/Reminder/compare/b05bfc9...0.3.0
 [0.2.0]: https://github.com/onelei/Reminder/compare/0.1.0...b05bfc9
 [0.1.0]: https://github.com/onelei/Reminder/releases/tag/0.1.0

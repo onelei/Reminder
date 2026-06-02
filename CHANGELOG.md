@@ -2,6 +2,14 @@
 
 本项目的所有重要变更均记录在此文件中。格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.0.0/)，版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [0.3.3] - 2026-06-02
+
+### 变更
+
+- 休息全屏窗口改为按系统检测到的每台显示器各开一个，覆盖多屏场景（不再仅主屏全屏）
+
+---
+
 ## [0.3.2] - 2026-06-02
 
 ### 修复
@@ -78,7 +86,8 @@
 - NSIS 安装包（内置 WebView2 引导程序）
 - 配置持久化至 `%APPDATA%\com.reminder.app\config.json`
 
-[0.3.2]: https://github.com/onelei/Reminder/compare/0.3.1...HEAD
+[0.3.3]: https://github.com/onelei/Reminder/compare/0.3.2...HEAD
+[0.3.2]: https://github.com/onelei/Reminder/compare/0.3.1...0.3.2
 [0.3.1]: https://github.com/onelei/Reminder/compare/0.3.0...0.3.1
 [0.3.0]: https://github.com/onelei/Reminder/compare/b05bfc9...0.3.0
 [0.2.0]: https://github.com/onelei/Reminder/compare/0.1.0...b05bfc9

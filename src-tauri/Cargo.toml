@@ -1,6 +1,6 @@
 [package]
 name = "reminder"
-version = "0.3.2"
+version = "0.3.3"
 description = "Reminder - desktop focus timer"
 authors = ["you"]
 edition = "2021"

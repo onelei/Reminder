@@ -2,7 +2,7 @@
   import { onMount } from "svelte";
   import { invoke } from "@tauri-apps/api/core";
   import { listen } from "@tauri-apps/api/event";
-  import { getCurrentWindow } from "@tauri-apps/api/window";
+  import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
   import { convertFileSrc } from "@tauri-apps/api/core";
   import { DEFAULT_CONFIG, DEFAULT_TIMER, type AppConfig, type TimerSnapshot } from "$lib/types";
   import { applyThemeColor, formatTime } from "$lib/utils";
@@ -34,7 +34,7 @@
       });
 
       unlistenComplete = await listen("timer-break-complete", async () => {
-        await getCurrentWindow().close();
+        await getCurrentWebviewWindow().close();
       });
     })();
 
@@ -46,7 +46,7 @@
 
   async function endBreak() {
     await invoke("skip_break_cmd");
-    await getCurrentWindow().close();
+    await getCurrentWebviewWindow().close();
   }
 </script>
 

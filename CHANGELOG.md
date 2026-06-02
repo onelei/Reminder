@@ -2,6 +2,14 @@
 
 本项目的所有重要变更均记录在此文件中。格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.0.0/)，版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [0.3.4] - 2026-06-02
+
+### 修复
+
+- 修复多屏休息窗口（`break-*`）未纳入权限配置、无法接收 `timer-tick` 导致倒计时不走动的问题
+
+---
+
 ## [0.3.3] - 2026-06-02
 
 ### 变更
@@ -86,7 +94,8 @@
 - NSIS 安装包（内置 WebView2 引导程序）
 - 配置持久化至 `%APPDATA%\com.reminder.app\config.json`
 
-[0.3.3]: https://github.com/onelei/Reminder/compare/0.3.2...HEAD
+[0.3.4]: https://github.com/onelei/Reminder/compare/0.3.3...HEAD
+[0.3.3]: https://github.com/onelei/Reminder/compare/0.3.2...0.3.3
 [0.3.2]: https://github.com/onelei/Reminder/compare/0.3.1...0.3.2
 [0.3.1]: https://github.com/onelei/Reminder/compare/0.3.0...0.3.1
 [0.3.0]: https://github.com/onelei/Reminder/compare/b05bfc9...0.3.0
